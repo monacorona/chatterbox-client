@@ -4,7 +4,9 @@ $( document ).ready( function() {
   window.app = {};
 
   app.init = function () {
-
+    app.handleUsernameClick();
+    app.handleSubmit();
+    app.fetch();
   };
 
   app.send = function (message) {
@@ -13,7 +15,7 @@ $( document ).ready( function() {
       url: 'http://parse.sfm8.hackreactor.com',
       type: 'POST',
       data: JSON.stringify(message),
-      contentType: 'application/json',
+      contentType: 'application/jsonp',
       success: function (data) {
         console.log('chatterbox: Message sent');
       },
@@ -28,11 +30,11 @@ $( document ).ready( function() {
   app.fetch = function () {
     $.ajax({
 
-      url: this.server,
+      url: app.server,
       type: 'POST',
       type: 'GET',
       data: JSON.stringify(message),
-      contentType: 'application/json',
+      contentType: 'application/jsonp',
       success: function (data) {
         console.log('chatterbox: Message sent');
       },
@@ -54,34 +56,16 @@ $( document ).ready( function() {
 
 
 // create chat class as outer div
-    var $chat = $('<div class ="chat"><span class="message"></span><br><span class="username"></span></div>');
-    $('.message').text(message.text);
-    $('.username').text(message.username);
+    var $chat = $('<div class ="chat"><span class="username"></span><br><span class="message"></span></div>');
+    $chat.prependTo('#chats');
 
-// create div with room class
-//     var $chatroom = $('<span class="chatroom"</span>');
-// // add room  text to room span
-//     $chatroom.text(message.roomname); 
-
-// // create span with username class
-//     var $users = $('<span class="username"></span>');
-//     //add the username to the username span
-//     $users.text(message.username);
-
-// // create span for the text with message class
-//     var $message = $('<span class="message"></span>');
-//     $message.text(message.text);
-    
-//     $message.wrap($chat);
-//     $users.appendTo($message);
-//     $chatroom.appendTo($message);
-
-    $chat.appendTo('#chats');  
+    $('.username').first().text(message.username);
+    $('.message').first().text(message.text);
 
   };
 
   app.renderRoom = function (name) {
-    $('<div>' + name + '</div>').appendTo('#roomSelect');
+    $('<div>' + name + '</div>').prependTo('#roomSelect');
   };
 
   app.handleUsernameClick = function () {
@@ -94,6 +78,13 @@ $( document ).ready( function() {
   };
 
   app.server = 'http://parse.sfm8.hackreactor.com';
+
+  app.handleSubmit = function (val) {
+    $('.submit').on('click', 'button', function() {
+      app.send(val);
+    });
+  };
+
 
 
 });
