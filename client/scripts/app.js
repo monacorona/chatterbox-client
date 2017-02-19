@@ -4,15 +4,23 @@ app = {};
 
 app.init = function () {
   app.handleUsernameClick();
-  app.handleSubmit();
+
   app.fetch();
+ 
+ //event listener
+  $('form').on('click', 'button', function(event) {
+    // $('form').children('input').preventDefault();
+    var val = $('input').val();
+    console.log(val);
+    app.handleSubmit(val);
+  });
 };
 
 
 app.send = function (message) {
   $.ajax({
   // This is the url you should use to communicate with the parse API server.
-    url: app.server,
+    url: 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages',
     type: 'POST',
     data: JSON.stringify(message),
     contentType: 'application/jsonp',
@@ -26,31 +34,34 @@ app.send = function (message) {
   });
 };
 
-app.messages;
+
+app.lastMessageIndex = 0;
 app.firstFetch = true;
 
 app.fetch = function () {
   $.ajax({
-    url: 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages',
+    url: 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages?order=-createdAt',
     type: 'GET',
     contentType: 'application/jsonp',
     success: function (data) {
+      var messages = [];
       if (app.firstFetch) {
-        app.messages = data.results.map(function(message) {
+        messages = data.results.map(function(message, index) {
+          if (data.results[app.lastMessageIndex] === data.results[data.results.length - 1]) {
+            app.lastMessageIndex = index;
+          }
           return message;
         });
-        console.log('data ---------------------------------');
-        console.log(data);
-        console.log('messages array ------------------------');
-        console.log(app.messages);
       // var message = JSON.parse(data);
-        app.messages.forEach(function(message) {
+        messages.forEach(function(message) {
           app.renderMessage(message);
         });
         app.firstFetch = false;
-      } else {
-        app.messages[app.messages.length] = data.results[data.results.length - 1];
-        app.renderMessage(app.messages[app.messages.length - 1]);
+      } else { 
+        messages = data.results.slice(app.lastMessageIndex);
+        messages.forEach(function (message) {
+          app.renderMessage(message);
+        });
       }
     },
 
@@ -61,6 +72,7 @@ app.fetch = function () {
       console.error('chatterbox: Failed to recieve message', data);
     }
   });
+  // setTimeout(app.fetch, 1000);
 };
 
 
@@ -99,12 +111,36 @@ app.handleUsernameClick = function () {
 
 
 app.handleSubmit = function (val) {
-  $('.submit').on('click', 'button', function() {
-    app.send(val);
-  });
+
+  var message = {
+    text: val,
+    username: 'Dylan',
+    roomname: 'lobby'
+  };
+
+  app.send(message);
+
+  // $('input').keyup(function() {
+  //   val = $(this).val();
+  // });
+  // keyup();
+  // debugger;
+  // console.log(val);
+  //var user = window.location.search;
+  // var message = {
+  //   text: val,
+  //   username: user
+  // };
+  // app.send(message);
+  
+  // var text = $('input').val();
+  // console.log(text, ' ', user);
+
+    // app.send(val);
+
 };
 
-app.server = 'http://parse.sfm8.hackreactor.com.jsonp';
+app.server = 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages';
 
 
 $( document ).ready( function() {
